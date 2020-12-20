@@ -50,7 +50,7 @@ async function fontManifest(opts = {}, root, result) {
       // prettier-ignore
       faces[url] = { family, weight, style, format, url, src, css };
     } else {
-      console.warning(`No ${format} source found for ${family}`, "\n");
+      console.warn(`No ${format} source found for ${family}`, "\n");
     }
   });
 
