@@ -31,8 +31,11 @@ async function fontManifest(opts = {}, root, result) {
 
   // Find font families in use
   root.walkDecls(/^font(-family)?$/, (decl) => {
-    const family = getFirstFontFamily(decl);
-    families[family] = true;
+    const parent = decl.parent
+    if (parent && parent.type === 'rule' && parent.selector) {
+      const family = getFirstFontFamily(decl);
+      families[family] = true;
+    }
   });
 
   // Find font face definitions
