@@ -70,6 +70,11 @@ async function fontManifest(opts = {}, root, result) {
   });
 }
 
+export const extractFontManifestResult = (result) => {
+  const message = result.messages.find((m) => m.type === "font-manifest");
+  return message ? message.fonts : null
+}
+
 const getQuoteless = (str) => str.replace(/^(['"])(.+)\1$/g, "$2");
 
 const getDeclarationValue = (rule, property) => {

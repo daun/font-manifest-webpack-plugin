@@ -1,8 +1,8 @@
 import * as fs from "fs";
 import postcss from "postcss";
 
-import { isFileOfTypes } from "./helpers";
-import postCssFontManifestPlugin from "./postcss";
+import { isStylesheet } from "./helpers";
+import postCssFontManifestPlugin, { extractFontManifestResult } from "./postcss";
 
 const pluginName = "FontManifest";
 
@@ -37,9 +37,7 @@ export default class FontManifestPlugin {
     const processingPromises = [];
 
     const assetsFromCompilation = Object.entries(compilation.assets).filter(
-      ([name]) => {
-        return isFileOfTypes(name, [".css"]);
-      }
+      ([name]) => isStylesheet(name)
     );
     for (const chunk of compilation.chunks) {
       const assetsToProcess = assetsFromCompilation.filter(([name]) => {
@@ -60,11 +58,8 @@ export default class FontManifestPlugin {
     const results = await Promise.all(processingPromises);
 
     const manifest = results.reduce((acc, result) => {
-      const message = result.messages.find((m) => m.type === "font-manifest");
-      if (message) {
-        acc = { ...acc, ...message.fonts };
-      }
-      return acc;
+      const fonts = extractFontManifestResult(result)
+      return fonts ? { ...acc, ...fonts } : acc;
     }, {});
 
     const manifestJson = JSON.stringify(manifest);

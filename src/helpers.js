@@ -17,6 +17,14 @@ export function getCanonicalFilename(fileName) {
  * @param extensions extensions
  */
 export function isFileOfTypes(filename, extensions) {
-  const extension = path.extname(getCanonicalFilename(filename));
+  const extension = path.extname(getCanonicalFilename(filename)).toLowerCase();
   return extensions.includes(extension);
+}
+
+/**
+ * Returns true if the filename is a stylesheet
+ * @param filename file name
+ */
+export function isStylesheet(filename) {
+  return isFileOfTypes(filename, [".css"]);
 }
