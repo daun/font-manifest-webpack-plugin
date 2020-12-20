@@ -1,4 +1,5 @@
 import postcss from "postcss";
+import CleanCSS from "clean-css";
 
 const pluginName = "postcss-font-manifest";
 
@@ -6,6 +7,8 @@ const defaults = {
   include: (path) => true,
   format: "woff2",
 };
+
+const clean = new CleanCSS();
 
 /**
  * fontManifest function
@@ -41,10 +44,11 @@ async function fontManifest(opts = {}, root, result) {
     const style = getDeclarationValue(rule, "font-style") || "normal";
     const src = getDeclarationValue(rule, "src");
     const url = getFontUrlByFormat(src, format);
+    const css = clean.minify(rule.toString()).styles
 
     if (url) {
       // prettier-ignore
-      faces[url] = { family, weight, style, format, url, src, css: rule.toString() };
+      faces[url] = { family, weight, style, format, url, src, css };
     } else {
       console.warning(`No ${format} source found for ${family}`, "\n");
     }
