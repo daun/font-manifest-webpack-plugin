@@ -1,6 +1,6 @@
 {
   "name": "font-manifest-webpack-plugin",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Webpack plugin for generating font manifests",
   "main": "dist/cjs.js",
   "dependencies": {
