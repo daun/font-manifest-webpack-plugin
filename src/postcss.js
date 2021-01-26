@@ -5,7 +5,7 @@ const pluginName = "postcss-font-manifest";
 
 const defaults = {
   include: (path) => true,
-  format: "woff2",
+  formats: ["woff2", "woff"],
 };
 
 const clean = new CleanCSS();
@@ -31,8 +31,8 @@ async function fontManifest(opts = {}, root, result) {
 
   // Find font families in use
   root.walkDecls(/^font(-family)?$/, (decl) => {
-    const parent = decl.parent
-    if (parent && parent.type === 'rule' && parent.selector) {
+    const parent = decl.parent;
+    if (parent && parent.type === "rule" && parent.selector) {
       const family = getFirstFontFamily(decl);
       families[family] = true;
     }
@@ -40,20 +40,21 @@ async function fontManifest(opts = {}, root, result) {
 
   // Find font face definitions
   root.walkAtRules(/font-face/, (rule) => {
-    const { format } = options;
+    const { formats } = options;
 
+    const css = clean.minify(rule.toString()).styles;
     const family = getDeclarationValue(rule, "font-family");
     const weight = getDeclarationValue(rule, "font-weight") || "normal";
     const style = getDeclarationValue(rule, "font-style") || "normal";
     const src = getDeclarationValue(rule, "src");
-    const url = getFontUrlByFormat(src, format);
-    const css = clean.minify(rule.toString()).styles
+    const file = getFontFileByFormat(src, formats);
 
-    if (url) {
+    if (file) {
+      const { format, url } = file;
       // prettier-ignore
       faces[url] = { family, weight, style, format, url, src, css };
     } else {
-      console.warn(`No ${format} source found for ${family}`, "\n");
+      console.warn(`No matching sources found for ${family}`, "\n");
     }
   });
 
@@ -75,8 +76,8 @@ async function fontManifest(opts = {}, root, result) {
 
 export const extractFontManifestResult = (result) => {
   const message = result.messages.find((m) => m.type === "font-manifest");
-  return message ? message.fonts : null
-}
+  return message ? message.fonts : null;
+};
 
 const getQuoteless = (str) => str.replace(/^(['"])(.+)\1$/g, "$2");
 
@@ -95,16 +96,18 @@ const getFirstFontFamily = (decl) =>
     postcss.list.space(postcss.list.comma(decl.value)[0]).slice(-1)[0]
   );
 
-const getFontUrlByFormat = (srcString, format) => {
-  const sources = postcss.list.comma(srcString).map(getFontUrlAndFormat);
-  const source = sources.find((src) => src.format === format);
-  return source ? source.url : null;
+const getFontFileByFormat = (srcString, formats) => {
+  const sources = postcss.list.comma(srcString);
+  const files = sources.map(getFontUrlAndFormat);
+  const matchingFiles = files
+    .filter((file) => formats.includes(file.format))
+    .sort((a, b) => formats.indexOf(a.format) - formats.indexOf(b.format));
+  return matchingFiles[0] || null;
 };
 
 const getFontUrlAndFormat = (fontSrc) => {
-  const match = /url\(["']?([\w\W]+?)["']?\)\s+format\(["']?([\w]+)["']?\)/i.exec(
-    fontSrc
-  );
+  const formatPattern = /url\(["']?([\w\W]+?)["']?\)\s+format\(["']?([\w]+)["']?\)/;
+  const match = formatPattern.exec(fontSrc);
   if (match) {
     const [, url, format] = match;
     return { url, format };

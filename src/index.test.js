@@ -6,8 +6,8 @@ import postCssFontManifestPlugin, { extractFontManifestResult } from "./postcss"
 
 const processor = postcss([postCssFontManifestPlugin]);
 
-const generateManifest = async (css) => {
-  const result = await processor.process(css);
+const generateManifest = async (css, opts = {}) => {
+  const result = await processor.process(css, { from: undefined }, opts);
   const manifest = extractFontManifestResult(result);
   return manifest;
 };
@@ -62,11 +62,11 @@ test("should ignore un-used font-faces", async () => {
   const css = `
     @font-face {
       font-family: 'Font A';
-      src: url(/fonts/a.woff2) format('woff2');
+      src: url(a.woff2) format('woff2');
     }
     @font-face {
       font-family: 'Font A';
-      src: url(/fonts/a.woff2) format('woff2');
+      src: url(a.woff2) format('woff2');
     }
     body {
       font-family: 'Font B';
@@ -78,5 +78,21 @@ test("should ignore un-used font-faces", async () => {
   `;
   const manifest = await generateManifest(css);
 
-  expect(manifest).not.toHaveProperty(['/fonts/a.woff2']);
+  expect(manifest).not.toHaveProperty(['a.woff2']);
+});
+
+test("should prefer woff2 format", async () => {
+  const css = `
+    @font-face {
+      font-family: 'Font A';
+      src: url(a.woff) format('woff'), url(a.woff2) format('woff2');
+    }
+    body {
+      font-family: 'Font A';
+    }
+  `;
+  const manifest = await generateManifest(css);
+
+  expect(manifest).toHaveProperty(['a.woff2']);
+  expect(manifest).not.toHaveProperty(['a.woff']);
 });
