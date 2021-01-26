@@ -55,7 +55,17 @@ module.exports = {
 
 ## Options
 
-Currently none.
+All options and their defaults. See below for an explanation of individual options.
+
+```js
+new FontManifestPlugin({
+  formats: ['woff2', 'woff']
+})
+```
+
+### formats
+
+Array of font formats to include in the manifest.
 
 ## License
 
