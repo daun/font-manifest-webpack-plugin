@@ -4,8 +4,6 @@ import CleanCSS from "clean-css";
 const pluginName = "postcss-font-manifest";
 
 const defaults = {
-  include: (path) => true,
-  exclude: (path) => false,
   formats: ["woff2", "woff"],
 };
 
@@ -21,15 +19,6 @@ async function fontManifest(opts = {}, root, result) {
   const options = { ...defaults, ...opts };
 
   const cssFile = root.source.input.file;
-
-  // Let user filter by including stylesheets
-  if (options.include && !options.include(cssFile)) {
-    return;
-  }
-  // Let user filter by excluding stylesheets
-  if (options.exclude && options.exclude(cssFile)) {
-    return;
-  }
 
   const families = {};
   const faces = {};

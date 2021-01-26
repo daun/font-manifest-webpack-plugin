@@ -1,4 +1,3 @@
-import * as fs from "fs";
 import postcss from "postcss";
 
 import { isStylesheet } from "./helpers";
@@ -21,25 +20,13 @@ export default class FontManifestPlugin {
 
   initializePlugin(compilation) {
     compilation.hooks.additionalAssets.tapPromise(pluginName, () => {
-      const entryPaths = this.getEntryPaths()
-      return this.runPluginHook(compilation, entryPaths);
-    });
-  }
-
-  getEntryPaths() {
-    let { paths } = this.options
-    if (typeof paths === "function") {
-      paths = paths()
-    }
-    paths.forEach((p) => {
-      if (!fs.existsSync(p)) throw new Error(`Path ${p} does not exist.`);
+      return this.runPluginHook(compilation);
     });
   }
 
   async runPluginHook(compilation) {
-    const processor = postcss([postCssFontManifestPlugin]);
+    const processor = postcss([postCssFontManifestPlugin(this.options)]);
     const processingPromises = [];
-    const pluginOptions = this.options;
 
     const assetsFromCompilation = Object.entries(compilation.assets).filter(
       ([name]) => isStylesheet(name)
@@ -56,7 +43,7 @@ export default class FontManifestPlugin {
 
       for (const [name, asset] of assetsToProcess) {
         const css = asset.source().toString();
-        processingPromises.push(processor.process(css, { from: name }, pluginOptions));
+        processingPromises.push(processor.process(css, { from: name }));
       }
     }
 
