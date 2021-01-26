@@ -4,20 +4,19 @@ import Plugin from "./cjs";
 import { isStylesheet } from "./helpers";
 import postCssFontManifestPlugin, { extractFontManifestResult } from "./postcss";
 
-const processor = postcss([postCssFontManifestPlugin]);
-
-const generateManifest = async (css, opts = {}) => {
-  const result = await processor.process(css, { from: undefined }, opts);
+const generateManifest = async (css, opts = null) => {
+  const processor = postcss([postCssFontManifestPlugin(opts)]);
+  const result = await processor.process(css, { from: undefined });
   const manifest = extractFontManifestResult(result);
   return manifest;
 };
 
 test("should set options property", () => {
-  const opts = {
+  const options = {
     test: "hello",
   };
-  const plugin = new Plugin(opts);
-  expect(plugin.options).toBe(opts);
+  const plugin = new Plugin(options);
+  expect(plugin.options).toBe(options);
 });
 
 test("should recognize css files by filename", () => {
@@ -95,4 +94,21 @@ test("should prefer woff2 format", async () => {
 
   expect(manifest).toHaveProperty(['a.woff2']);
   expect(manifest).not.toHaveProperty(['a.woff']);
+});
+
+test("should make preferred format configurable", async () => {
+  const options = { formats: ['woff', 'woff2'] };
+  const css = `
+    @font-face {
+      font-family: 'Font A';
+      src: url(a.woff2) format('woff2'), url(a.woff) format('woff');
+    }
+    body {
+      font-family: 'Font A';
+    }
+  `;
+  const manifest = await generateManifest(css, options);
+
+  expect(manifest).toHaveProperty(['a.woff']);
+  expect(manifest).not.toHaveProperty(['a.woff2']);
 });

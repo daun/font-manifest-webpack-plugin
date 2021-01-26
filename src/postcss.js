@@ -115,8 +115,9 @@ const getFontUrlAndFormat = (fontSrc) => {
   return {};
 };
 
-const getPluginWithIntialParams = (options) => fontManifest.bind(null, options);
+const getPluginWithInitialParams = (options) =>
+  fontManifest.bind(null, options);
 
 export default postcss.plugin(pluginName, (options = {}) =>
-  getPluginWithIntialParams(options)
+  getPluginWithInitialParams(options)
 );
