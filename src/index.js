@@ -21,20 +21,25 @@ export default class FontManifestPlugin {
 
   initializePlugin(compilation) {
     compilation.hooks.additionalAssets.tapPromise(pluginName, () => {
-      const entryPaths =
-        typeof this.options.paths === "function"
-          ? this.options.paths()
-          : this.options.paths;
-      entryPaths.forEach((p) => {
-        if (!fs.existsSync(p)) throw new Error(`Path ${p} does not exist.`);
-      });
+      const entryPaths = this.getEntryPaths()
       return this.runPluginHook(compilation, entryPaths);
+    });
+  }
+
+  getEntryPaths() {
+    let { paths } = this.options
+    if (typeof paths === "function") {
+      paths = paths()
+    }
+    paths.forEach((p) => {
+      if (!fs.existsSync(p)) throw new Error(`Path ${p} does not exist.`);
     });
   }
 
   async runPluginHook(compilation) {
     const processor = postcss([postCssFontManifestPlugin]);
     const processingPromises = [];
+    const pluginOptions = this.options;
 
     const assetsFromCompilation = Object.entries(compilation.assets).filter(
       ([name]) => isStylesheet(name)
@@ -51,7 +56,7 @@ export default class FontManifestPlugin {
 
       for (const [name, asset] of assetsToProcess) {
         const css = asset.source().toString();
-        processingPromises.push(processor.process(css, { from: name }));
+        processingPromises.push(processor.process(css, { from: name }, pluginOptions));
       }
     }
 
