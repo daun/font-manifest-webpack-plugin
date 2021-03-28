@@ -112,3 +112,35 @@ test("should make preferred format configurable", async () => {
   expect(manifest).toHaveProperty(['a.woff']);
   expect(manifest).not.toHaveProperty(['a.woff2']);
 });
+
+test("should exclude data URI fonts by default", async () => {
+  const options = { };
+  const css = `
+    @font-face {
+      font-family: 'Font A';
+      src: url(data:application/font-woff;base64,abcd) format('woff2'), url(a.woff) format('woff');
+    }
+    body {
+      font-family: 'Font A';
+    }
+  `;
+  const manifest = await generateManifest(css, options);
+
+  expect(manifest).not.toHaveProperty(['data:application/font-woff;base64,abcd']);
+});
+
+test("should allow including data URI font", async () => {
+  const options = { dataUris: true };
+  const css = `
+    @font-face {
+      font-family: 'Font A';
+      src: url(data:application/font-woff;base64,abcd) format('woff2'), url(a.woff) format('woff');
+    }
+    body {
+      font-family: 'Font A';
+    }
+  `;
+  const manifest = await generateManifest(css, options);
+
+  expect(manifest).toHaveProperty(['data:application/font-woff;base64,abcd']);
+});

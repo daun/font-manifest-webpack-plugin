@@ -1,10 +1,13 @@
 import postcss from "postcss";
 import CleanCSS from "clean-css";
 
+import { isDataUri } from "./helpers";
+
 const pluginName = "postcss-font-manifest";
 
 const defaults = {
   formats: ["woff2", "woff"],
+  dataUris: false
 };
 
 const clean = new CleanCSS();
@@ -34,7 +37,7 @@ async function fontManifest(opts = {}, root, result) {
 
   // Find font face definitions
   root.walkAtRules(/font-face/, (rule) => {
-    const { formats } = options;
+    const { formats, dataUris } = options;
 
     const css = clean.minify(rule.toString()).styles;
     const family = getDeclarationValue(rule, "font-family");
@@ -45,6 +48,10 @@ async function fontManifest(opts = {}, root, result) {
 
     if (file) {
       const { format, url } = file;
+      // Skip data URIs unless configured to included
+      if (!dataUris && isDataUri(url)) {
+        return
+      }
       // prettier-ignore
       faces[url] = { family, weight, style, format, url, src, css };
     } else {

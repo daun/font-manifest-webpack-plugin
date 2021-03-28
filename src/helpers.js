@@ -28,3 +28,11 @@ export function isFileOfTypes(filename, extensions) {
 export function isStylesheet(filename) {
   return isFileOfTypes(filename, [".css"]);
 }
+
+/**
+ * Returns true if the filename is a data URI
+ * @param filename file name
+ */
+export function isDataUri(filename) {
+  return filename.trim().toLowerCase().startsWith('data:');
+};
