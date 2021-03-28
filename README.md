@@ -59,13 +59,18 @@ All options and their defaults. See below for an explanation of individual optio
 
 ```js
 new FontManifestPlugin({
-  formats: ['woff2', 'woff']
+  formats: ['woff2', 'woff'],
+  dataUris: false
 })
 ```
 
 ### formats
 
 Array of font formats to include in the manifest.
+
+### dataUris
+
+Whether data URIs are included in the generated manifest.
 
 ## License
 
